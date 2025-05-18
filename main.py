@@ -9,19 +9,18 @@ GREEN = (0, 255, 0)
 
 WIDTH = 20
 HEIGHT = 20
+SIZE = 12
 
 MARGIN = 1
 
 grid = []
 
-for row in range(12):
+for row in range(SIZE):
     grid.append([])
-    for column in range(12):
+    for column in range(SIZE):
         grid[row].append(0)
-#grid[5][4] = 1
+
 grid[5][5] = 1
-#grid[5][6] = 1
-#grid[6][4] = 1
 grid[6][6] = 1
 grid[7][4] = 1
 grid[7][5] = 1
@@ -35,53 +34,48 @@ clock = pygame.time.Clock()
 neighbours = {}
 
 
+def defining_neighbors(pos, row, column):
+    if row + 1 >= len(pos):
+        if column + 1 >= len(pos[row]):
+            neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][0],
+                                         pos[row][column - 1], pos[row][0],
+                                         pos[0][column - 1], pos[0][column], pos[0][0]]
+        else:
+            neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][column + 1],
+                                         pos[row][column - 1], pos[row][column + 1],
+                                         pos[0][column - 1], pos[0][column], pos[0][column + 1]]
+    elif column + 1 >= len(pos):
+        neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][0],
+                                     pos[row][column - 1], pos[row][0],
+                                     pos[row + 1][column - 1], pos[row + 1][column], pos[row + 1][0]]
+    else:
+        neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][column + 1],
+                                     pos[row][column - 1], pos[row][column + 1],
+                                     pos[row + 1][column - 1], pos[row + 1][column], pos[row + 1][column + 1]]
+
+
 def life(pos):
     new_pos = copy.deepcopy(pos)
-    for row in range(12):
-        for column in range(12):
+    for row in range(SIZE):
+        for column in range(SIZE):
             if pos[row][column] == 1:
-                if row + 1 >= len(pos):
-                    if column + 1 >= len(pos[row]):
-                        neighbours[(row, column)] = [pos[row-1][column-1], pos[row-1][column], pos[row-1][0],
-                              pos[row][column-1], pos[row][0],
-                              pos[0][column-1], pos[0][column], pos[0][0]]
-                    else:
-                        neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][column + 1],
-                                                     pos[row][column - 1], pos[row][column + 1],
-                                                     pos[0][column - 1], pos[0][column], pos[0][column + 1]]
-                elif column + 1 >= len(pos):
-                    neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][0],
-                                                 pos[row][column - 1], pos[row][0],
-                                                 pos[row + 1][column - 1], pos[row + 1][column], pos[row + 1][0]]
-                else:
-                    neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][column + 1],
-                                                 pos[row][column - 1], pos[row][column + 1],
-                                                 pos[row + 1][column - 1], pos[row + 1][column], pos[row + 1][column + 1]]
+                defining_neighbors(pos, row, column)
                 if neighbours[(row, column)].count(1) < 2:
                     new_pos[row][column] = 0
                 elif neighbours[(row, column)].count(1) > 3:
                     new_pos[row][column] = 0
             else:
-                if row + 1 >= len(pos):
-                    if column + 1 >= len(pos[row]):
-                        neighbours[(row, column)] = [pos[row-1][column-1], pos[row-1][column], pos[row-1][0],
-                              pos[row][column-1], pos[row][0],
-                              pos[0][column-1], pos[0][column], pos[0][0]]
-                    else:
-                        neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][column + 1],
-                                                     pos[row][column - 1], pos[row][column + 1],
-                                                     pos[0][column - 1], pos[0][column], pos[0][column + 1]]
-                elif column + 1 >= len(pos):
-                    neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][0],
-                                                 pos[row][column - 1], pos[row][0],
-                                                 pos[row + 1][column - 1], pos[row + 1][column], pos[row + 1][0]]
-                else:
-                    neighbours[(row, column)] = [pos[row - 1][column - 1], pos[row - 1][column], pos[row - 1][column + 1],
-                                                 pos[row][column - 1], pos[row][column + 1],
-                                                 pos[row + 1][column - 1], pos[row + 1][column], pos[row + 1][column + 1]]
+                defining_neighbors(pos, row, column)
                 if neighbours[(row, column)].count(1) == 3:
                     new_pos[row][column] = 1
     return new_pos
+
+
+def drawing(color):
+    pygame.draw.rect(src, color, [(MARGIN + WIDTH) * column + MARGIN,
+                                  (MARGIN + HEIGHT) * row + MARGIN,
+                                  WIDTH,
+                                  HEIGHT])
 
 
 run = True
@@ -99,20 +93,12 @@ while run:
             row = my_pos[1] // (HEIGHT + MARGIN)
             grid[row][column] = 1
 
-    for row in range(12):
-        for column in range(12):
+    for row in range(SIZE):
+        for column in range(SIZE):
             if grid[row][column] == 1:
-                color = GREEN
-                pygame.draw.rect(src, color,[(MARGIN + WIDTH) * column + MARGIN,
-                                  (MARGIN + HEIGHT) * row + MARGIN,
-                                  WIDTH,
-                                  HEIGHT])
+                drawing(GREEN)
             elif grid[row][column] == 0:
-                color = BLACK
-                pygame.draw.rect(src, color, [(MARGIN + WIDTH) * column + MARGIN,
-                                              (MARGIN + HEIGHT) * row + MARGIN,
-                                              WIDTH,
-                                              HEIGHT])
+                drawing(BLACK)
     grid = life(grid)
 
     pygame.display.flip()
