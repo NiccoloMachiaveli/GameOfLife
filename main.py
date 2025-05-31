@@ -44,7 +44,9 @@ class GameOfLifeEducational:
         self.message = ""
         self.game_running = False
         self.iterations = 0
-        self.max_iterations = 10
+
+        # Different max iterations for different levels
+        self.level_max_iterations = {1: 10, 2: 5, 3: 15, 4: 15}
 
     def create_empty_grid(self):
         grid = []
@@ -55,15 +57,42 @@ class GameOfLifeEducational:
         return grid
 
     def get_target_pattern(self, level):
+
+        target = self.create_empty_grid()
+
         # Level 1: Square pattern (2x2) - adjusted for 8x8 grid
         if level == 1:
-            target = self.create_empty_grid()
             target[3][2] = 1
             target[3][3] = 1
             target[4][2] = 1
             target[4][3] = 1
-            return target
-        return self.create_empty_grid()
+        # Level 2: Blinker pattern (oscillator)
+        elif level == 2:
+            target[3][2] = 1
+            target[3][3] = 1
+            target[3][4] = 1
+        # Level 3: Loaf pattern (from the ship)
+        elif level == 3:
+            target[2][4] = 1
+            target[3][3] = 1
+            target[3][5] = 1
+            target[4][2] = 1
+            target[4][5] = 1
+            target[5][3] = 1
+            target[5][4] = 1
+        # Level 4: Cross pattern
+        elif level == 4:
+            target[1][3] = 1
+            target[2][3] = 1
+            target[3][1] = 1
+            target[3][2] = 1
+            target[3][3] = 1
+            target[3][4] = 1
+            target[3][5] = 1
+            target[4][3] = 1
+            target[5][3] = 1
+
+        return target
 
     def defining_neighbors(self, pos, row, column):
         neighbors = []
@@ -110,36 +139,51 @@ class GameOfLifeEducational:
 
         # Title
         title = self.font.render("Game of Life - Binary Code Learning", True, BLACK)
-        title_rect = title.get_rect(center=(400, 150))
+        title_rect = title.get_rect(center=(400, 100))
         self.screen.blit(title, title_rect)
 
         # Menu options
         level1_text = self.font.render("Level 1", True, BLUE)
-        level1_rect = level1_text.get_rect(center=(400, 250))
+        level1_rect = level1_text.get_rect(center=(400, 170))
         self.screen.blit(level1_text, level1_rect)
 
+        level2_text = self.font.render("Level 2", True, BLUE)
+        level2_rect = level2_text.get_rect(center=(400, 220))
+        self.screen.blit(level2_text, level2_rect)
+
+        level3_text = self.font.render("Level 3", True, BLUE)
+        level3_rect = level3_text.get_rect(center=(400, 270))
+        self.screen.blit(level3_text, level3_rect)
+
+        level4_text = self.font.render("Level 4", True, BLUE)
+        level4_rect = level3_text.get_rect(center=(400, 320))
+        self.screen.blit(level4_text, level4_rect)
+
         help_text = self.font.render("Help", True, BLUE)
-        help_rect = help_text.get_rect(center=(400, 300))
+        help_rect = help_text.get_rect(center=(400, 370))
         self.screen.blit(help_text, help_rect)
 
         exit_text = self.font.render("Exit", True, BLUE)
-        exit_rect = exit_text.get_rect(center=(400, 350))
+        exit_rect = exit_text.get_rect(center=(400, 420))
         self.screen.blit(exit_text, exit_rect)
 
         # Instructions
         instructions = [
-            "Click on Level 1 to start",
-            "Learn binary code through Conway's Game of Life!"
+            "Choose a level to start learning binary code!",
+            "Level 1: Create a 2x2 square",
+            "Level 2: Create a cross pattern",
+            "Level 3: Create a loaf (from the ship)"
+            "Level 4: Create a blinker (oscillator)"
         ]
 
-        y_offset = 450
+        y_offset = 480
         for instruction in instructions:
             text = self.small_font.render(instruction, True, GRAY)
             text_rect = text.get_rect(center=(400, y_offset))
             self.screen.blit(text, text_rect)
-            y_offset += 30
+            y_offset += 20
 
-        return level1_rect, help_rect, exit_rect
+        return level1_rect, level2_rect, level3_rect, level4_rect, help_rect, exit_rect
 
     def draw_input_screen(self):
         self.screen.fill(WHITE)
@@ -187,13 +231,13 @@ class GameOfLifeEducational:
         self.screen.blit(input_surface, (input_box.x + 10, input_box.y + 5))
 
         # Buttons
-        start_button = pygame.Rect(50, 520, 100, 40)
+        start_button = pygame.Rect(50, 515, 100, 40)
         pygame.draw.rect(self.screen, GREEN, start_button)
         start_text = self.font.render("Start", True, BLACK)
         start_rect = start_text.get_rect(center=start_button.center)
         self.screen.blit(start_text, start_rect)
 
-        reset_button = pygame.Rect(170, 520, 100, 40)
+        reset_button = pygame.Rect(170, 515, 100, 40)
         pygame.draw.rect(self.screen, RED, reset_button)
         reset_text = self.font.render("Reset", True, BLACK)
         reset_rect = reset_text.get_rect(center=reset_button.center)
@@ -207,7 +251,17 @@ class GameOfLifeEducational:
 
         # Example text
         if self.input_step == 1:
-            example = "Example: 'H' -> 01001000, '0' -> 00110000"
+            if self.current_level == 1:
+                example = "Example: '0' -> 00110000 (for square pattern)"
+            elif self.current_level == 2:
+                example = "Example: '<' -> 00111100 (for cross pattern)"
+            elif self.current_level == 3:
+                example = "Example: '$' -> 00100100 (for loaf pattern)"
+            elif self.current_level == 4:
+                example = "Example: '8' -> 00111000 (for blinker pattern)"
+            else:
+                example = "Enter any printable character"
+
             example_text = self.small_font.render(example, True, GRAY)
             self.screen.blit(example_text, (50, 495))
 
@@ -315,12 +369,27 @@ class GameOfLifeEducational:
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.state == MENU:
-                        level1_rect, help_rect, exit_rect = self.draw_menu()
+                        level1_rect, level2_rect, level3_rect, level4_rect, help_rect, exit_rect = self.draw_menu()
                         if level1_rect.collidepoint(event.pos):
                             self.state = INPUT
                             self.current_level = 1
                             self.grid = self.create_empty_grid()
                             self.target_grid = self.get_target_pattern(1)
+                        elif level2_rect.collidepoint(event.pos):
+                            self.state = INPUT
+                            self.current_level = 2
+                            self.grid = self.create_empty_grid()
+                            self.target_grid = self.get_target_pattern(2)
+                        elif level3_rect.collidepoint(event.pos):
+                            self.state = INPUT
+                            self.current_level = 3
+                            self.grid = self.create_empty_grid()
+                            self.target_grid = self.get_target_pattern(3)
+                        elif level4_rect.collidepoint(event.pos):
+                            self.state = INPUT
+                            self.current_level = 4
+                            self.grid = self.create_empty_grid()
+                            self.target_grid = self.get_target_pattern(4)
                         elif exit_rect.collidepoint(event.pos):
                             running = False
 
@@ -386,13 +455,14 @@ class GameOfLifeEducational:
 
                     elif self.state == GAME:
                         if event.key == pygame.K_SPACE:
-                            if self.iterations < self.max_iterations:
+                            max_iter = self.level_max_iterations.get(self.current_level, 10)
+                            if self.iterations < max_iter:
                                 self.grid = self.life_step(self.grid)
                                 self.iterations += 1
 
                                 if self.grids_match(self.grid, self.target_grid):
                                     self.state = RESULT
-                                elif self.iterations >= self.max_iterations:
+                                elif self.iterations >= max_iter:
                                     self.state = RESULT
                         elif event.key == pygame.K_r:
                             self.state = INPUT
